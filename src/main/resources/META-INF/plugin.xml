@@ -1,30 +1,39 @@
 <idea-plugin>
     <id>com.github.nghiatm.robotframeworkplugin</id>
-    <name>RobotFramework Support</name>
+    <name>RobotFramework Helper</name>
     <vendor>nghiatm</vendor>
 
     <description>
         Robot Framework plugin for IntelliJ-based IDEs.
     </description>
 
-    <change-notes>Initial release of the RobotFramework Support plugin.</change-notes>
-
     <depends>com.intellij.modules.python</depends>
-<!--    <depends>PythonCore</depends>-->
-    <depends optional="true" >com.github.rey5137.robot-runner-plugin</depends>
-
+    <!-- Ultimate -->
+    <!--suppress PluginXmlValidity -->
+    <depends optional="true" config-file="pythonId-config.xml">Pythonid</depends>
+    <!-- Community Edition -->
+    <!--suppress PluginXmlValidity -->
+    <depends optional="true" config-file="pythonCore-config.xml">PythonCore</depends>
 
     <extensions defaultExtensionNs="com.intellij">
 
-<!--        <fileEditorProvider-->
-<!--            implementation="com.github.rey5137.robotrunnerplugin.editors.RobotOutputFileEditorProvider"/>-->
-
         <projectConfigurable groupId="language"
                              instance="com.github.nghiatm.robotframeworkplugin.ide.config.RobotConfiguration"/>
-        <projectService
+        <applicationService
                 serviceImplementation="com.github.nghiatm.robotframeworkplugin.ide.config.RobotOptionsProvider"/>
+        <projectService serviceImplementation="com.github.nghiatm.robotframeworkplugin.psi.RobotProjectData" />
+        <typedHandler implementation="com.github.nghiatm.robotframeworkplugin.ide.RobotTypedHandlerDelegate"/>
 
-        <fileTypeFactory implementation="com.github.nghiatm.robotframeworkplugin.psi.RobotFileTypeHandler"/>
+        <fileType name="Robot Feature"
+                  implementationClass="com.github.nghiatm.robotframeworkplugin.psi.RobotFeatureFileType"
+                  fieldName="INSTANCE"
+                  language="Robot"
+                  extensions="robot"/>
+        <fileType name="Robot Resource"
+                  implementationClass="com.github.nghiatm.robotframeworkplugin.psi.RobotResourceFileType"
+                  fieldName="INSTANCE"
+                  language="Robot"
+                  extensions="resource"/>
         <colorSettingsPage implementation="com.github.nghiatm.robotframeworkplugin.ide.config.RobotColorsPage"/>
 
         <!-- IDE Hooks -->
@@ -32,6 +41,7 @@
                                 implementationClass="com.github.nghiatm.robotframeworkplugin.ide.RobotCompletionContributor"/>
         <lang.findUsagesProvider language="Robot"
                                  implementationClass="com.github.nghiatm.robotframeworkplugin.ide.usage.RobotFindUsagesProvider"/>
+        <usageTypeProvider implementation="com.github.nghiatm.robotframeworkplugin.ide.usage.RobotUsageTypeProvider"/>
         <fileStructureGroupRuleProvider
                 implementation="com.github.nghiatm.robotframeworkplugin.ide.usage.RobotKeywordGroupingRuleProvider"/>
         <referencesSearch
@@ -47,6 +57,12 @@
                                implementationClass="com.github.nghiatm.robotframeworkplugin.psi.RobotParserDefinition"/>
         <lang.psiStructureViewFactory language="Robot"
                                       implementationClass="com.github.nghiatm.robotframeworkplugin.ide.structure.RobotStructureViewFactory"/>
+        <lang.namesValidator language="Robot" implementationClass="com.github.nghiatm.robotframeworkplugin.ide.RobotNameValidator"/>
+
+        <spellchecker.support language="Robot" implementationClass="com.github.nghiatm.robotframeworkplugin.psi.RobotSpellCheckingStrategy"/>
+
+        <defaultLiveTemplates file="/liveTemplates/RobotFramework.xml"/>
+        <liveTemplateContext implementation="com.github.nghiatm.robotframeworkplugin.ide.RobotFrameworkContext"/>
 
         <!-- Manipulators -->
         <lang.elementManipulator forClass="com.github.nghiatm.robotframeworkplugin.psi.element.KeywordInvokable"
@@ -55,7 +71,6 @@
                                  implementationClass="com.github.nghiatm.robotframeworkplugin.psi.manip.ArgumentManipulator"/>
         <lang.elementManipulator forClass="com.github.nghiatm.robotframeworkplugin.psi.element.Variable"
                                  implementationClass="com.github.nghiatm.robotframeworkplugin.psi.manip.VariableManipulator"/>
-
         <!-- Inspections -->
         <!-- Inspections: Compilation -->
         <localInspection language="Robot" shortName="RobotKeywordNotFound"
@@ -125,5 +140,64 @@
         <runLineMarkerContributor language="Robot" id="gradleGroovyRunLineMarkerProvider"
                                   implementationClass="com.github.nghiatm.robotframeworkplugin.ide.execution.RobotRunLineMarkerProvider"/>
 
+        <configurationType
+                id="com.github.nghiatm.robotframeworkplugin.ide.execution.runconfig.RobotConfigurationType"
+                implementation="com.github.nghiatm.robotframeworkplugin.ide.execution.runconfig.RobotConfigurationType">
+        </configurationType>
+
     </extensions>
+
+    <actions>
+        <action id="com.github.nghiatm.robotframeworkplugin.ide.action.RunTestCaseAction"
+                class="com.github.nghiatm.robotframeworkplugin.ide.action.RunTestCaseAction"
+                text="Run For Selection"
+                icon="AllIcons.Actions.Execute"
+        >
+            <keyboard-shortcut keymap="$default" first-keystroke="shift meta R"/>
+            <add-to-group  group-id="RunContextGroupInner" anchor="first"/>
+
+        </action>
+
+
+        <group id="com.github.nghiatm.robotframeworkplugin.ide.action.RunActionGroup"
+               class="com.github.nghiatm.robotframeworkplugin.ide.action.RunActionGroup"
+               text="More Run ..."
+               popup="true"
+        >
+            <add-to-group group-id="RunContextGroupInner"
+                          relative-to-action="com.github.nghiatm.robotframeworkplugin.ide.action.RunTestCaseAction"
+                          anchor="after"/>
+        </group>
+
+        <action id="com.github.nghiatm.robotframeworkplugin.ide.action.RunBySelectTextAction"
+                class="com.github.nghiatm.robotframeworkplugin.ide.action.RunBySelectTextAction"
+                text="Run For Select Text"
+                icon="AllIcons.Actions.Execute"
+        >
+            <keyboard-shortcut keymap="$default" first-keystroke="shift meta R"/>
+            <add-to-group  group-id="RunContextGroupInner" anchor="first"/>
+
+        </action>
+
+
+        <group id="com.github.nghiatm.robotframeworkplugin.ide.action.RunBySelectTextGroup"
+               class="com.github.nghiatm.robotframeworkplugin.ide.action.RunBySelectTextGroup"
+               text="More Run ..."
+               popup="true"
+        >
+            <add-to-group group-id="RunContextGroupInner"
+                          relative-to-action="com.github.nghiatm.robotframeworkplugin.ide.action.RunBySelectTextAction"
+                          anchor="after"/>
+        </group>
+
+        <group id="com.github.nghiatm.robotframeworkplugin.ide.action.PabotRunActionGroup"
+               class="com.github.nghiatm.robotframeworkplugin.ide.action.PabotRunActionGroup"
+               text="[Pabot] More Run ..."
+               popup="true"
+        >
+            <add-to-group group-id="RunContextGroupInner"
+                          relative-to-action="com.github.nghiatm.robotframeworkplugin.ide.action.RunActionGroup"
+                          anchor="after"/>
+        </group>
+    </actions>
 </idea-plugin>
