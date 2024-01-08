@@ -6,7 +6,9 @@ Forked from https://github.com/mtrubs/intellibot
 
 
 ## Installation
+* Remove/disable other plugin which have same features before install to prevent conflict.
 * Install from Jetbrains Marketplace https://plugins.jetbrains.com/plugin/21066-robotframework-helper
+* Restart after installed.
 
 ## Features
 * Structure navigation 
@@ -35,5 +37,11 @@ Forked from https://github.com/mtrubs/intellibot
   * Go to config (Preferences > Languages & Frameworks > Robot Options --> Pabot tab) to enable and config number of processes
   * New run action will show in context menu for pabot
 * Add run action in project view
+* Show testcases and keywords in Project View
+  ![](https://raw.githubusercontent.com/trannghia190/robotframework-helper/master/docs/imgs/projectview.png)
+
+<a href="https://www.buymeacoffee.com/trannghia190" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+
+
 
 <!-- Plugin description end -->
