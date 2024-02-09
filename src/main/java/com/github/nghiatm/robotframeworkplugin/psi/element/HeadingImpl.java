@@ -32,6 +32,7 @@ public class HeadingImpl extends RobotPsiElementBase implements Heading {
 
     private static final String ROBOT_BUILT_IN = "BuiltIn";
     private static final String WITH_NAME = "WITH NAME";
+    private static final String AS = "AS";
     private static Collection<DefinedVariable> BUILT_IN_VARIABLES = null;
     private Collection<KeywordInvokable> invokedKeywords;
     private MultiMap<String, KeywordInvokable> invokableReferences;
@@ -389,7 +390,7 @@ public class HeadingImpl extends RobotPsiElementBase implements Heading {
     }
 
     /**
-     * Gets the namespace of the current import.  This looks for the 'WITH NAME' tag else returns the first argument.
+     * Gets the namespace of the current import.  This looks for the 'WITH NAME' tag or the 'AS' tag, else returns the first argument.
      *
      * @param imp     the import statement to get the namespace of.
      * @param library the first argument; aka the default namespace
@@ -401,7 +402,7 @@ public class HeadingImpl extends RobotPsiElementBase implements Heading {
         if (args != null) {
             for (int i = 0; i < args.length; i++) {
                 Argument arg = args[i];
-                if (WITH_NAME.equals(arg.getPresentableText())) {
+                if (WITH_NAME.equals(arg.getPresentableText()) || AS.equals(arg.getPresentableText())) {
                     index = i;
                     break;
                 }
