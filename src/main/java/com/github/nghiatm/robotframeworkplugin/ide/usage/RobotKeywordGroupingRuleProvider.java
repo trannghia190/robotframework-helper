@@ -7,8 +7,10 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.usages.PsiNamedElementUsageGroupBase;
 import com.intellij.usages.Usage;
 import com.intellij.usages.UsageGroup;
+import com.intellij.usages.UsageTarget;
 import com.intellij.usages.impl.FileStructureGroupRuleProvider;
 import com.intellij.usages.rules.PsiElementUsage;
+import com.intellij.usages.rules.SingleParentUsageGroupingRule;
 import com.intellij.usages.rules.UsageGroupingRule;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,12 +27,13 @@ public class RobotKeywordGroupingRuleProvider implements FileStructureGroupRuleP
         return new RobotKeywordGroupingRule();
     }
 
-    private static class RobotKeywordGroupingRule implements UsageGroupingRule {
+    private static class RobotKeywordGroupingRule extends SingleParentUsageGroupingRule  {
 
         private RobotKeywordGroupingRule() {
         }
 
-        public UsageGroup groupUsage(@NotNull Usage usage) {
+        @Override
+        protected @Nullable UsageGroup getParentGroupFor(@NotNull Usage usage, UsageTarget @NotNull [] targets) {
             if (!(usage instanceof PsiElementUsage)) {
                 return null;
             } else {

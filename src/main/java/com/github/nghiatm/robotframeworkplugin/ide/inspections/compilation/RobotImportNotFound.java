@@ -3,6 +3,7 @@ package com.github.nghiatm.robotframeworkplugin.ide.inspections.compilation;
 import com.github.nghiatm.robotframeworkplugin.RobotBundle;
 import com.github.nghiatm.robotframeworkplugin.ide.inspections.SimpleRobotInspection;
 import com.github.nghiatm.robotframeworkplugin.psi.RobotTokenTypes;
+import com.github.nghiatm.robotframeworkplugin.psi.element.Argument;
 import com.github.nghiatm.robotframeworkplugin.psi.element.Import;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
@@ -24,6 +25,9 @@ public class RobotImportNotFound extends SimpleRobotInspection {
 
     @Override
     public boolean skip(PsiElement element) {
+        if (!(element instanceof Argument)) {
+            return true;
+        }
         if (element.getNode().getElementType() != RobotTokenTypes.ARGUMENT) {
             return true;
         }

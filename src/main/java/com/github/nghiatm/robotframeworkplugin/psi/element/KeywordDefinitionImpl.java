@@ -1,18 +1,19 @@
 package com.github.nghiatm.robotframeworkplugin.psi.element;
 
 import com.github.nghiatm.robotframeworkplugin.ide.icons.RobotIcons;
+import com.github.nghiatm.robotframeworkplugin.psi.util.ExtRobotPsiUtils;
 import com.github.nghiatm.robotframeworkplugin.psi.util.PerformanceCollector;
+import com.github.nghiatm.robotframeworkplugin.psi.util.PerformanceEntity;
 import com.intellij.lang.ASTNode;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiNameIdentifierOwner;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.github.nghiatm.robotframeworkplugin.psi.util.PerformanceEntity;
+import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
+import javax.swing.Icon;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -33,9 +34,31 @@ public class KeywordDefinitionImpl extends RobotPsiElementBase implements Keywor
     private List<KeywordInvokable> invokedKeywords;
     private Collection<DefinedVariable> definedInlineVariables;
     private Collection<DefinedVariable> definedArguments;
+    private String namespace;
+    private Pattern namespacePattern;
+    private Boolean embedded;
+    private boolean isTestCase;
+
+    private PsiElement keywordRef;
 
     public KeywordDefinitionImpl(@NotNull final ASTNode node) {
         super(node);
+    }
+
+    public PsiElement getKeywordRef(){
+        return keywordRef;
+    }
+
+    public void setKeywordRef(PsiElement element){
+        this.keywordRef = element;
+    }
+
+    public boolean isTestCase() {
+        return isTestCase;
+    }
+
+    public void setIsTestCase(boolean testCase) {
+        isTestCase = testCase;
     }
 
     @NotNull
@@ -146,20 +169,35 @@ public class KeywordDefinitionImpl extends RobotPsiElementBase implements Keywor
         this.invokedKeywords = null;
     }
 
+    //  The full name of the keyword is case-, space- and underscore-insensitive, similarly as normal keyword names.
     @Override
     public boolean matches(String text) {
         if (text == null) {
             return false;
         }
-        String myText = getPresentableText();
         Pattern namePattern = this.pattern;
         if (namePattern == null) {
-            String myNamespace = getNamespace(getContainingFile());
-            namePattern = Pattern.compile(buildPattern(myNamespace, myText.trim()), Pattern.CASE_INSENSITIVE);
-            this.pattern = namePattern;
+            namePattern = buildPattern(getNamespace(), getPresentableText().trim());
         }
-
-        return namePattern.matcher(text.trim()).matches();
+        text = text.trim();
+        if (this.embedded) {
+            if (namePattern.matcher(text).matches())
+                return true;
+        } else {
+            if (namePattern.matcher(text.replaceAll("[_ ]", "")).matches())
+                return true;
+        }
+        Matcher prefix = this.namespacePattern.matcher(text);
+        if (prefix.lookingAt()) {
+            text = text.substring(prefix.end());
+            if (this.embedded) {
+                return namePattern.matcher(text).matches();
+            } else {
+                return namePattern.matcher(text.replaceAll("[_ ]", "")).matches();
+            }
+        } else {
+            return false;
+        }
     }
 
     @Override
@@ -167,27 +205,56 @@ public class KeywordDefinitionImpl extends RobotPsiElementBase implements Keywor
         return this;
     }
 
-    private String getNamespace(@NotNull PsiFile file) {
-        VirtualFile virtualFile = file.getVirtualFile();
-        if (virtualFile == null) {
-            return null;
-        }
-        String name = virtualFile.getName();
-        // remove the extension
-        int index = name.lastIndexOf(DOT);
-        if (index > 0) {
-            name = name.substring(0, index);
+    @Override
+    public String getNamespace() {
+        String name = this.namespace;
+        if (name == null) {
+            PsiFile file = this.getContainingFile();
+            if (file != null) {
+                name = file.getName();
+                // remove the extension
+                int index = name.lastIndexOf(DOT);
+                if (index > 0) {
+                    name = name.substring(0, index);
+                }
+            }
+            this.namespace = name;
         }
         return name;
     }
 
-    private String buildPattern(String namespace, String text) {
+    // Keyword names used in the test data are compared with method names to find the method implementing these keywords.
+    // Name comparison is case-insensitive, and also spaces and underscores are ignored.
+    // For example, the method hello maps to the keyword name Hello, hello or even h e l l o.
+    // Similarly both the do_nothing and doNothing methods can be used as the Do Nothing keyword in the test data.
+    //   Embedding arguments into keyword name
+    // These kind of keywords are also used the same way as other keywords except that spaces and underscores are not ignored in their names.
+    // They are, however, case-insensitive like other keywords.
+    // For example, the keyword in the example above could be used like select x from list, but not like Select x fromlist.
+    private Pattern buildPattern(String namespace, String text) {
+        Matcher matcher = PATTERN.matcher(text);
+
+        String result = "";
+        if (matcher.matches()) {
+            result = buildPatternEmbedding(text);
+            this.embedded = true;
+        } else {
+            result = text.length() > 0 ? Pattern.quote(text.replaceAll("[_ ]", "")) : text;
+            this.embedded = false;
+        }
+        this.namespacePattern = Pattern.compile(Pattern.quote(namespace != null && namespace.length() > 0 ? namespace + DOT : ""), Pattern.CASE_INSENSITIVE);
+        // this.embedded, this.namespacePattern is implicit in this.pattern, so assign this.pattern at last.
+        this.pattern = Pattern.compile(result, Pattern.CASE_INSENSITIVE);
+        return this.pattern;
+    }
+
+    private String buildPatternEmbedding(String text) {
         Matcher matcher = PATTERN.matcher(text);
 
         String result = "";
         if (matcher.matches()) {
             String start = matcher.group(1);
-            String end = buildPattern(null, matcher.group(3));
+            String end = buildPatternEmbedding(matcher.group(3));
 
             if (start.length() > 0) {
                 result = Pattern.quote(start);
@@ -198,9 +265,6 @@ public class KeywordDefinitionImpl extends RobotPsiElementBase implements Keywor
             }
         } else {
             result = text.length() > 0 ? Pattern.quote(text) : text;
-        }
-        if (namespace != null && namespace.length() > 0) {
-            result = "(" + Pattern.quote(namespace + DOT) + ")?" + result;
         }
         return result;
     }
@@ -230,5 +294,13 @@ public class KeywordDefinitionImpl extends RobotPsiElementBase implements Keywor
         } else {
             return RobotIcons.KEYWORD_DEFINITION;
         }
+    }
+
+    @Override
+    public PsiElement setName(@NotNull String name) throws IncorrectOperationException {
+        super.setName(name);
+        KeywordDefinitionImpl newElement = new ExtRobotPsiUtils(this).createKeywordDefinitionImpl(name);
+        this.getNode().replaceChild(this.getNode().getFirstChildNode(), newElement.getNode().getFirstChildNode());
+        return this;
     }
 }

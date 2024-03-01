@@ -1,9 +1,12 @@
 package com.github.nghiatm.robotframeworkplugin.psi.element;
 
 import com.github.nghiatm.robotframeworkplugin.psi.ref.RobotVariableReference;
+import com.github.nghiatm.robotframeworkplugin.psi.util.ExtRobotPsiUtils;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
+import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -27,5 +30,13 @@ public class VariableImpl extends RobotPsiElementBase implements Variable {
         String text = getPresentableText();
         return StringUtil.getOccurrenceCount(text, "}") > 1 &&
                 (StringUtil.getOccurrenceCount(text, "${") + StringUtil.getOccurrenceCount(text, "@{") + StringUtil.getOccurrenceCount(text, "%{") > 1);
+    }
+
+    @Override
+    public PsiElement setName(@NotNull String name) throws IncorrectOperationException {
+        super.setName(name);
+        VariableImpl newElement = new ExtRobotPsiUtils(this).createVariable(name);
+        this.getNode().getTreeParent().replaceChild(this.getNode(), newElement.getNode());
+        return this;
     }
 }

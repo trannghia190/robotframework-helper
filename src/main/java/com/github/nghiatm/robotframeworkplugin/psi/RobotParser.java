@@ -73,6 +73,9 @@ public class RobotParser implements PsiParser {
         PsiBuilder.Marker keywordIdMarker = null;
         while (true) {
             IElementType type = builder.getTokenType();
+            if(RobotTokenTypes.RESERVED_WORD == type){
+                builder.advanceLexer();
+            }
             if (RobotTokenTypes.KEYWORD_DEFINITION == type ||
                     RobotTokenTypes.VARIABLE_DEFINITION == type && isNextToken(builder, RobotTokenTypes.KEYWORD_DEFINITION)) {
                 if (builder.rawLookup(-1) != RobotTokenTypes.VARIABLE_DEFINITION) {
@@ -247,13 +250,46 @@ public class RobotParser implements PsiParser {
             type = builder.getTokenType();
             if (RobotTokenTypes.ARGUMENT == type || RobotTokenTypes.VARIABLE == type) {
                 parseWith(builder, RobotTokenTypes.ARGUMENT);
-            } else if (markType != RobotTokenTypes.VARIABLE_DEFINITION && RobotTokenTypes.VARIABLE_DEFINITION == type) {
+            } else if(markType == RobotTokenTypes.BRACKET_SETTING && RobotTokenTypes.RESERVED_WORD == builder.getTokenType()){
+                break;
+            }
+            else if (markType != RobotTokenTypes.VARIABLE_DEFINITION && RobotTokenTypes.VARIABLE_DEFINITION == type) {
+//                if (markType == RobotTokenTypes.BRACKET_SETTING){
+//                    String text = builder.getOriginalText().subSequence(0, builder.getCurrentOffset()).toString();
+//                    if(text.replaceAll("(?<=\\n)\\s+", "").endsWith("\n")){
+//                        break;
+//                    }
+//                }
                 // we check the first two to see if we are in a new statement; the third handles ... cases
-                if (builder.rawLookup(-1) == RobotTokenTypes.WHITESPACE &&
-                        builder.rawLookup(-2) == RobotTokenTypes.WHITESPACE &&
-                        builder.rawLookup(-3) != RobotTokenTypes.WHITESPACE) {
+//                if (builder.rawLookup(-1) == RobotTokenTypes.WHITESPACE &&
+//                        builder.rawLookup(-2) == RobotTokenTypes.WHITESPACE &&
+//                        builder.rawLookup(-3) != RobotTokenTypes.WHITESPACE) {
+//                    break;
+//                }
+                // also handle new statement after an/multiple empty Ellipsis
+                //    [Arguments]    ${arg1}
+                //    ...
+                //    ...
+                //    ...    ${arg2}=${-1}
+                //    ...    ${arg3}
+                //    ${test}    Set Variable    2222
+                //    [Documentation]
+                //    ...
+                //    ...    document1
+                //    ...
+                //    ...    ${arg3}    is test
+                //    ...
+                //    ...
+                //    ${var1}=    Set Variable    111
+                //    Log    ${var1}    ${arg3}    ${test}
+                //#shold resolve all variable
+
+                int cnt = 0;
+                for (int b=-1; builder.rawLookup(b) == RobotTokenTypes.WHITESPACE; b--)
+                    cnt++;
+                if (cnt % 3 != 1)
                     break;
-                }
+
                 parseVariableDefinitionWithDefaults(builder);
 
             } else {

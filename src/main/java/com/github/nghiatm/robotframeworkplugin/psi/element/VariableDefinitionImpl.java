@@ -1,12 +1,14 @@
 package com.github.nghiatm.robotframeworkplugin.psi.element;
 
 import com.github.nghiatm.robotframeworkplugin.ide.icons.RobotIcons;
+import com.github.nghiatm.robotframeworkplugin.psi.util.ExtRobotPsiUtils;
 import com.github.nghiatm.robotframeworkplugin.psi.util.PatternUtil;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNameIdentifierOwner;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,6 +60,8 @@ public class VariableDefinitionImpl extends RobotPsiElementBase implements Varia
     @Nullable
     @Override
     public String getLookup() {
+        // getName() return full variable definition line in robot file
+        // getText() return the part before SUPER_SPACE or TAB
         return getText();
     }
 
@@ -78,5 +82,13 @@ public class VariableDefinitionImpl extends RobotPsiElementBase implements Varia
     @Override
     public PsiElement getNameIdentifier() {
         return PsiTreeUtil.findChildOfType(this, VariableDefinitionId.class);
+    }
+
+    @Override
+    public PsiElement setName(@NotNull String name) throws IncorrectOperationException {
+        super.setName(name);
+        VariableDefinitionImpl newElement = new ExtRobotPsiUtils(this).createVariableDefinition(name);
+        this.getNode().getTreeParent().replaceChild(this.getNode(), newElement.getNode());
+        return this;
     }
 }

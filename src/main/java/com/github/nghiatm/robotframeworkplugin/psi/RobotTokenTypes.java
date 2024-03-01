@@ -1,11 +1,10 @@
 package com.github.nghiatm.robotframeworkplugin.psi;
 
 import com.intellij.psi.tree.IFileElementType;
-import com.intellij.psi.tree.IStubFileElementType;
 
 public interface RobotTokenTypes {
 
-    IFileElementType FILE = new IStubFileElementType<>(RobotLanguage.INSTANCE);
+    IFileElementType FILE = new RobotFileElementType("ROBOT_FILE", RobotLanguage.INSTANCE);
     RobotElementType HEADING = new RobotElementType("HEADING");
     RobotElementType SETTING = new RobotElementType("SETTING");
     RobotElementType BRACKET_SETTING = new RobotElementType("BRACKET_SETTING");
@@ -21,6 +20,10 @@ public interface RobotTokenTypes {
     RobotElementType GHERKIN = new RobotElementType("GHERKIN");
     RobotElementType SYNTAX_MARKER = new RobotElementType("SYNTAX_MARKER");
     RobotElementType KEYWORD_STATEMENT = new RobotElementType("KEYWORD_STATEMENT");
+    RobotElementType RESERVED_WORD = new RobotElementType("RESERVED_WORD");
+    RobotElementType RESERVED_WORD_NEWLINE_INDENT = new RobotElementType("RESERVED_WORD_NEWLINE_INDENT");
+    RobotElementType RESERVED_WORD_NEWLINE_INDENT_SUPERSPACE = new RobotElementType("RESERVED_WORD_NEWLINE_INDENT_SUPERSPACE");
+    RobotElementType SETTING_RESERVED_WORD = new RobotElementType("SETTING_RESERVED_WORD");
 
     RobotElementType ERROR = new RobotElementType("ERROR");
     RobotElementType WHITESPACE = new RobotElementType("WHITESPACE");

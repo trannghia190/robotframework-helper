@@ -1,5 +1,6 @@
 package com.github.nghiatm.robotframeworkplugin.ide.usage;
 
+import com.github.nghiatm.robotframeworkplugin.RobotBundle;
 import com.github.nghiatm.robotframeworkplugin.psi.element.Argument;
 import com.github.nghiatm.robotframeworkplugin.psi.element.Import;
 import com.github.nghiatm.robotframeworkplugin.psi.element.KeywordDefinition;
@@ -9,7 +10,6 @@ import com.intellij.lang.cacheBuilder.WordsScanner;
 import com.intellij.lang.findUsages.FindUsagesProvider;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
-import com.github.nghiatm.robotframeworkplugin.RobotBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

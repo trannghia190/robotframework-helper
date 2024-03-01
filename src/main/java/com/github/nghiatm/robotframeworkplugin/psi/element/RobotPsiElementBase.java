@@ -1,13 +1,14 @@
 package com.github.nghiatm.robotframeworkplugin.psi.element;
 
+import com.github.nghiatm.robotframeworkplugin.psi.util.LogUtil;
 import com.github.nghiatm.robotframeworkplugin.psi.util.PatternUtil;
+import com.github.nghiatm.robotframeworkplugin.psi.util.PerformanceEntity;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.util.Iconable;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.IncorrectOperationException;
-import com.github.nghiatm.robotframeworkplugin.psi.util.PerformanceEntity;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -52,7 +53,7 @@ public abstract class RobotPsiElementBase extends ASTWrapperPsiElement implement
     @NotNull
     @Override
     public String getDebugFileName() {
-        return getContainingFile().getVirtualFile().getName();
+        return getContainingFile().getOriginalFile().getVirtualFile().getName();
     }
 
     @NotNull
@@ -66,8 +67,9 @@ public abstract class RobotPsiElementBase extends ASTWrapperPsiElement implement
         return getPresentableText();
     }
 
-    public PsiElement setName(@NotNull String var1) throws IncorrectOperationException {
-        // TODO: for renaming an element
+    public PsiElement setName(@NotNull String name) throws IncorrectOperationException {
+        //for renaming an element -> handle by each type
+        LogUtil.debug("setName of type ["+this.getOriginalElement().getNode().getElementType()+"] from ["+this.getDebugText()+"] to ["+name+"]", "RobotPsiElementBase", "setName", this.getProject());
         return this;
     }
 }

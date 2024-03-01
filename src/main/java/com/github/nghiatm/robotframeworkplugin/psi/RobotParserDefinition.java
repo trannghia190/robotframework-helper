@@ -96,8 +96,8 @@ public class RobotParserDefinition implements ParserDefinition {
     }
 
     @Override
-    public SpaceRequirements spaceExistanceTypeBetweenTokens(ASTNode left, ASTNode right) {
+    public SpaceRequirements spaceExistenceTypeBetweenTokens(ASTNode left, ASTNode right) {
         // TODO: guessing this is for code cleanup
-        return null;
+        return SpaceRequirements.MAY;
     }
 }

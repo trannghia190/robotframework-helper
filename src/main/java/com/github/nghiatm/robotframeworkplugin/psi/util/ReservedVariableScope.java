@@ -1,11 +1,11 @@
 package com.github.nghiatm.robotframeworkplugin.psi.util;
 
-import com.github.nghiatm.robotframeworkplugin.psi.ref.PythonResolver;
 import com.github.nghiatm.robotframeworkplugin.psi.element.Argument;
 import com.github.nghiatm.robotframeworkplugin.psi.element.BracketSetting;
 import com.github.nghiatm.robotframeworkplugin.psi.element.Heading;
 import com.github.nghiatm.robotframeworkplugin.psi.element.KeywordStatement;
 import com.github.nghiatm.robotframeworkplugin.psi.element.Setting;
+import com.github.nghiatm.robotframeworkplugin.psi.ref.PythonResolver;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiWhiteSpace;
@@ -24,6 +24,12 @@ public enum ReservedVariableScope {
         public boolean isInScope(@NotNull PsiElement position) {
             // everywhere
             return true;
+        }
+
+        @Nullable
+        @Override
+        public PsiElement getVariable(@NotNull Project project) {
+            return getGlobalVariable(project);
         }
     },
     TestCase {
@@ -218,15 +224,46 @@ public enum ReservedVariableScope {
                 PsiTreeUtil.getParentOfType(position, KeywordStatement.class);
     }
 
+    private static PsiElement GlobalVariableClass = null;
+    private static PsiElement ContextVariableClass = null;
+
     @Nullable
     public PsiElement getVariable(@NotNull Project project) {
+        return getContextVariable(project);
+    }
+
+    @Nullable
+    protected PsiElement getGlobalVariable(@NotNull Project project) {
+        if (GlobalVariableClass != null) {
+            return GlobalVariableClass;
+        }
         // Robot 2.x
         PsiElement element = PythonResolver.findVariable("GLOBAL_VARIABLES", project);
         if (element == null) {
             // Robot 3.x
             element = PythonResolver.findClass("GlobalVariables", project);
         }
-        return element;
+        if (element == null) {
+            element = PythonResolver.findClass("robot.variables.scopes.GlobalVariables", project);
+        }
+        GlobalVariableClass = element;
+        return GlobalVariableClass;
+    }
+
+    @Nullable
+    protected PsiElement getContextVariable(@NotNull Project project) {
+        if (ContextVariableClass != null) {
+            return ContextVariableClass;
+        }
+        PsiElement element = PythonResolver.findClass("ExecutionContexts", project);
+        if (element == null) {
+            element = PythonResolver.findClass("robot.running.context.ExecutionContexts", project);
+        }
+        if (element == null) {
+            element = getGlobalVariable(project);
+        }
+        ContextVariableClass = element;
+        return ContextVariableClass;
     }
 
     public abstract boolean isInScope(@NotNull PsiElement position);

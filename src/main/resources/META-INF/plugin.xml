@@ -16,6 +16,9 @@
     <depends optional="true" config-file="pythonCore-config.xml">PythonCore</depends>
 
     <extensions defaultExtensionNs="com.intellij">
+        <treeStructureProvider
+                implementation="com.github.nghiatm.robotframeworkplugin.ide.projectview.RobotStructureProvider" />
+        <codeInsight.inlayProvider language="Robot" implementationClass="com.github.nghiatm.robotframeworkplugin.ide.hints.VariableHintsProvider"/>
 
         <projectConfigurable groupId="language"
                              instance="com.github.nghiatm.robotframeworkplugin.ide.config.RobotConfiguration"/>
@@ -94,12 +97,12 @@
         <!-- TODO: inspection: error?: resource import is not a robot file -->
         <!-- TODO: inspection: warn: import python file vs class -->
         <!-- Inspections: Cleanup -->
-        <localInspection language="Robot" shortName="RobotImportNotUsed"
-                         bundle="messages.RobotBundle"
-                         key="INSP.NAME.import.unused" groupPath="Robot" groupKey="INSP.GROUP.cleanup"
-                         enabledByDefault="true"
-                         level="WARNING"
-                         implementationClass="com.github.nghiatm.robotframeworkplugin.ide.inspections.cleanup.RobotImportNotUsed"/>
+<!--        <localInspection language="Robot" shortName="RobotImportNotUsed"-->
+<!--                         bundle="messages.RobotBundle"-->
+<!--                         key="INSP.NAME.import.unused" groupPath="Robot" groupKey="INSP.GROUP.cleanup"-->
+<!--                         enabledByDefault="true"-->
+<!--                         level="WARNING"-->
+<!--                         implementationClass="com.github.nghiatm.robotframeworkplugin.ide.inspections.cleanup.RobotImportNotUsed"/>-->
         <!-- Inspections: Readability -->
         <localInspection language="Robot" shortName="RobotGherkinInspection"
                          bundle="messages.RobotBundle"

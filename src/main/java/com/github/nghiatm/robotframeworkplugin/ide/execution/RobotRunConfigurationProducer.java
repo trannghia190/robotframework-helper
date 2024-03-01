@@ -1,5 +1,6 @@
 package com.github.nghiatm.robotframeworkplugin.ide.execution;
 
+import com.github.nghiatm.robotframeworkplugin.ide.execution.runconfig.RobotRunConfiguration;
 import com.github.nghiatm.robotframeworkplugin.psi.RobotFeatureFileType;
 import com.github.nghiatm.robotframeworkplugin.psi.element.DefinedKeyword;
 import com.github.nghiatm.robotframeworkplugin.psi.element.KeywordDefinitionImpl;
@@ -14,15 +15,15 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.jetbrains.python.run.PythonConfigurationType;
-import com.jetbrains.python.run.PythonRunConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
-public class RobotRunConfigurationProducer extends LazyRunConfigurationProducer<PythonRunConfiguration> {
+@Deprecated
+public class RobotRunConfigurationProducer extends LazyRunConfigurationProducer<RobotRunConfiguration> {
 
     @Override
-    protected boolean setupConfigurationFromContext(@NotNull PythonRunConfiguration runConfig,
+    protected boolean setupConfigurationFromContext(@NotNull RobotRunConfiguration runConfig,
                                                     @NotNull ConfigurationContext context,
                                                     @NotNull Ref<PsiElement> sourceElement) {
         if (isValidRobotExecutableScript(context)) {
@@ -75,7 +76,7 @@ public class RobotRunConfigurationProducer extends LazyRunConfigurationProducer<
     }
 
     @Override
-    public boolean isConfigurationFromContext(@NotNull PythonRunConfiguration runConfig,
+    public boolean isConfigurationFromContext(@NotNull RobotRunConfiguration runConfig,
                                               @NotNull ConfigurationContext context) {
         if (isValidRobotExecutableScript(context)) {
             String runParam = getRunParameters(context);

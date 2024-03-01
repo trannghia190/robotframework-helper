@@ -3,10 +3,10 @@ package com.github.nghiatm.robotframeworkplugin.psi.ref;
 import com.github.nghiatm.robotframeworkplugin.psi.element.Argument;
 import com.github.nghiatm.robotframeworkplugin.psi.element.Import;
 import com.github.nghiatm.robotframeworkplugin.psi.element.KeywordStatement;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiReferenceBase;
 import com.github.nghiatm.robotframeworkplugin.psi.util.PerformanceCollector;
 import com.github.nghiatm.robotframeworkplugin.psi.util.PerformanceEntity;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiReferenceBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,6 +61,10 @@ public class RobotArgumentReference extends PsiReferenceBase<Argument> {
 
     @Nullable
     private PsiElement resolveLibrary() {
+        if(getElement().getPresentableText().endsWith(".yaml")){
+            return RobotFileManager.findOtherFiles(getElement().getPresentableText(),
+                    getElement().getProject(), getElement());
+        }
         return RobotFileManager.findPython(getElement().getPresentableText(),
                 getElement().getProject(), getElement());
     }
