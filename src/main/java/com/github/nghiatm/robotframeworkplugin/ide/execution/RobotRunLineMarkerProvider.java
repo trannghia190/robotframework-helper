@@ -52,7 +52,7 @@ public class RobotRunLineMarkerProvider extends RunLineMarkerContributor {
                                     e -> join(mapNotNull(allActions, action -> getText(action, e)), "\n"));
                         }
                     }
-                }else if (isTestCases(element.getText())){
+                }else if (RobotLexer.isTestCases(element.getText())){
                     final AnAction[] actions = ExecutorAction.getActions();
                     return new Info(AllIcons.RunConfigurations.TestState.Run, actions, e -> "Run Suite");
                 }
@@ -61,10 +61,6 @@ public class RobotRunLineMarkerProvider extends RunLineMarkerContributor {
 
         }
         return null;
-    }
-
-    private static boolean isTestCases(String line) {
-        return "*** Test Cases ***".equals(line) || "*** Test Case ***".equals(line) || line.matches("\\*\\*\\* (Test Cases?|Tasks?) \\*\\*\\*");
     }
 
     private AnAction[] getCustomActions(PsiElement element){

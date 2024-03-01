@@ -39,23 +39,23 @@ public class RobotLexer extends LexerBase {
     }
 
     private static boolean isSettings(String line) {
-        return "*** Settings ***".equals(line) || "*** Setting ***".equals(line);
+        return line.toLowerCase().matches("\\*\\*\\* (settings?) \\*\\*\\*.*");
     }
 
-    private static boolean isTestCases(String line) {
-        return "*** Test Cases ***".equals(line) || "*** Test Case ***".equals(line) || line.matches("\\*\\*\\* (Test Cases?|Tasks?) \\*\\*\\*");
+    public static boolean isTestCases(String line) {
+        return line.toLowerCase().matches("\\*\\*\\* (test cases?|tasks?) \\*\\*\\*.*");
     }
 
     private static boolean isKeywords(String line) {
-        return "*** Keywords ***".equals(line) || "*** Keyword ***".equals(line);
+        return line.toLowerCase().matches("\\*\\*\\* (keywords?) \\*\\*\\*.*");
     }
 
     private static boolean isUserKeywords(String line) {
-        return "*** User Keywords ***".equals(line) || "*** User Keyword ***".equals(line);
+        return line.toLowerCase().matches("\\*\\*\\* (user keywords?) \\*\\*\\*.*");
     }
 
     private static boolean isVariables(String line) {
-        return "*** Variables ***".equals(line) || "*** Variable ***".equals(line);
+        return line.toLowerCase().matches("\\*\\*\\* (variables?) \\*\\*\\*.*");
     }
 
     protected static int toState(List<Integer> stack) {
