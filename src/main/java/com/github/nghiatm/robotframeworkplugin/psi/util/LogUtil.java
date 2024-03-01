@@ -10,9 +10,9 @@ import org.jetbrains.annotations.NotNull;
 public class LogUtil {
 
     public static void debug(@NotNull String logMessage, String className, String functionName, @NotNull Project project) {
-        if (RobotOptionsProvider.getInstance(project).isDebug()) {
+        if (RobotOptionsProvider.getInstance().isDebug()) {
             String message = String.format("[%s][%s] %s", className, functionName, logMessage);
-            Notifications.Bus.notify(new Notification("intellibot.debug", "Debug", message, NotificationType.INFORMATION));
+            Notifications.Bus.notify(new Notification("robotframework.helper.debug", "Debug", message, NotificationType.INFORMATION));
         }
     }
 }

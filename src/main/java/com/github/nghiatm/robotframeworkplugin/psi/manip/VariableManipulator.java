@@ -1,23 +1,22 @@
 package com.github.nghiatm.robotframeworkplugin.psi.manip;
 
+import com.github.nghiatm.robotframeworkplugin.psi.element.VariableImpl;
+import com.github.nghiatm.robotframeworkplugin.psi.util.LogUtil;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.AbstractElementManipulator;
 import com.intellij.util.IncorrectOperationException;
-import com.github.nghiatm.robotframeworkplugin.psi.element.Argument;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * we seem to need this but it is not really used at this time.  it prevents NPEs for the jump to source.
- * we likely need it to do intelligent refactoring.
- *
- * @author mrubino
- * @since 2015-07-21
+ * @author nghiatm
  */
-public class VariableManipulator extends AbstractElementManipulator<Argument> {
+public class VariableManipulator extends AbstractElementManipulator<VariableImpl> {
 
     @Override
-    public Argument handleContentChange(@NotNull Argument element, @NotNull TextRange range,
+    public VariableImpl handleContentChange(@NotNull VariableImpl element, @NotNull TextRange range,
                                         String newContent) throws IncorrectOperationException {
-        return null;
+        LogUtil.debug(element.getText(), "VariableManipulator", "handleContent", element.getProject());
+        element.setName(newContent);
+        return element;
     }
 }

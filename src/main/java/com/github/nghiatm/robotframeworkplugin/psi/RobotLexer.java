@@ -1,13 +1,14 @@
 package com.github.nghiatm.robotframeworkplugin.psi;
 
 import com.intellij.lexer.LexerBase;
+import com.intellij.openapi.util.text.Strings;
 import com.intellij.psi.tree.IElementType;
-import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Stack;
+import java.util.regex.Pattern;
 
 public class RobotLexer extends LexerBase {
 
@@ -26,7 +27,7 @@ public class RobotLexer extends LexerBase {
     // we might run into max int issues at some point
     private static final int RATE = 12; // this should always be the last state + 1
     private final RobotKeywordProvider keywordProvider;
-    private CharSequence buffer = ArrayUtil.EMPTY_CHAR_SEQUENCE;
+    private CharSequence buffer = Strings.EMPTY_CHAR_SEQUENCE ;
     private int startOffset;
     private int endOffset;
     private int position;
@@ -42,7 +43,7 @@ public class RobotLexer extends LexerBase {
     }
 
     private static boolean isTestCases(String line) {
-        return "*** Test Cases ***".equals(line) || "*** Test Case ***".equals(line);
+        return "*** Test Cases ***".equals(line) || "*** Test Case ***".equals(line) || line.matches("\\*\\*\\* (Test Cases?|Tasks?) \\*\\*\\*");
     }
 
     private static boolean isKeywords(String line) {
@@ -192,10 +193,15 @@ public class RobotLexer extends LexerBase {
                 if (isSuperSpace(this.position)) {
                     skipWhitespace();
                 }
-                goToVariableEnd();
-                //goToNextNewLineOrSuperSpace();
-                this.level.push(VARIABLE_DEFINITION);
-                this.currentToken = RobotTokenTypes.VARIABLE_DEFINITION;
+                if (isVariable(this.position)) {
+                    goToVariableEnd();
+                    //goToNextNewLineOrSuperSpace();
+                    this.level.push(VARIABLE_DEFINITION);
+                    this.currentToken = RobotTokenTypes.VARIABLE_DEFINITION;
+                } else {
+                    goToEndOfLine();
+                    this.currentToken = RobotTokenTypes.ERROR;
+                }
             } else if (TEST_CASES_HEADING == state || KEYWORDS_HEADING == state) {
                 if (isSuperSpace(this.position)) {
                     skipWhitespace();
@@ -214,6 +220,8 @@ public class RobotLexer extends LexerBase {
                 if (isSuperSpace(this.position)) {
                     skipWhitespace();
                     this.currentToken = RobotTokenTypes.WHITESPACE;
+                } else if (lookAheadForLoop()) {
+                    this.currentToken = RobotTokenTypes.RESERVED_WORD;
                 } else if (isVariable(this.position)) {
                     goToVariableEnd();
                     if (isVariableDefinition(this.position)) {
@@ -297,13 +305,15 @@ public class RobotLexer extends LexerBase {
                         // if we are in a bracket settings then it is variable definition rather than a variable
                         if (SETTINGS == state && isSuperSpacePrevious()) {
                             this.currentToken = RobotTokenTypes.VARIABLE_DEFINITION;
+                        } else if(isVariableDefineByKeyword()){
+                            this.currentToken = RobotTokenTypes.VARIABLE_DEFINITION;
                         } else {
                             this.currentToken = RobotTokenTypes.VARIABLE;
                         }
                     } else if (KEYWORD == state && KEYWORD == parentState) {
                         goToNextNewLineOrSuperSpaceOrVariable();
                         this.currentToken = RobotTokenTypes.KEYWORD;
-                    } else {
+                    }  else {
                         goToNextNewLineOrSuperSpaceOrVariable();
                         this.currentToken = RobotTokenTypes.ARGUMENT;
                     }
@@ -335,6 +345,9 @@ public class RobotLexer extends LexerBase {
         // potential start of variable
         if (isVariableStart(position)) {
             position += 2;
+            // move number judgement in ResolveUtils
+            // if (isNumber(position))
+            //    return false;
             int count = 1;
             while (count > 0 && position < this.endOffset && position >= 0) {
                 if (isVariableEnd(position)) {
@@ -373,7 +386,8 @@ public class RobotLexer extends LexerBase {
     private boolean isVariableStart(int position) {
         return (charAtEquals(position, '$') ||
                 charAtEquals(position, '@') ||
-                charAtEquals(position, '%')) && charAtEquals(position + 1, '{');
+                charAtEquals(position, '%') ||
+                charAtEquals(position, '&')) && charAtEquals(position + 1, '{');
     }
 
     private boolean isVariableEnd(int position) {
@@ -403,6 +417,18 @@ public class RobotLexer extends LexerBase {
         while (position < this.endOffset && (isWhitespace(position) || isNewLine(position))) {
             position++;
         }
+        // support "..." in FOR loop body that begin with "\"
+        //TODO: should there be superspace before "\"?
+        if (isBackslash(position)) {
+            position++;
+            // between "\" and "...", at least one superspace
+            if (!isSuperSpace(position)) {
+                return false;
+            }
+            while (position < this.endOffset && (isWhitespace(position) || isNewLine(position))) {
+                position++;
+            }
+        }
         return charAtEquals(position, '.') &&
                 charAtEquals(position + 1, '.') &&
                 charAtEquals(position + 2, '.') &&
@@ -410,10 +436,19 @@ public class RobotLexer extends LexerBase {
     }
 
     private boolean isOnlyWhitespaceToPreviousLine(int position) {
+        // support "..." in FOR loop body that begin with "\"
+        boolean have_backslash = false;
         while (position >= 0 && !isNewLine(position)) {
-            if (!isWhitespace(position)) {
+            if (!isWhitespace(position) && !isBackslash((position))) {
                 return false;
             }
+            if (isBackslash(position)) {
+                if (have_backslash || !isSuperSpace(position+1)) {
+                    return false;
+                }
+                have_backslash = true;
+            }
+            //TODO: should there be superspace before "\"?
             position--;
         }
         return true;
@@ -529,11 +564,52 @@ public class RobotLexer extends LexerBase {
         }
     }
 
+    private boolean isVariableDefineByKeyword(){
+        String patternString = "^(Set( .*)? variable){1}.*";
+
+        try{
+            if(this.position > 12 ){
+                int counter = this.position - 1;
+                while(counter != 0 && !isNewLine(counter)){
+                    counter --;
+                }
+                String line = this.buffer.subSequence(counter, this.position).toString();
+
+                if( Pattern.compile(patternString).matcher(line.trim()).matches()){
+                    return true;
+                }
+            }
+            return false;
+        }catch (Exception e){
+            return false;
+        }
+    }
+
     private boolean charAtEquals(int position, char c) {
         return position < this.endOffset && this.buffer.charAt(position) == c;
     }
 
     private boolean isWhitespace(int position) {
         return position < this.endOffset && !isNewLine(position) && Character.isWhitespace(this.buffer.charAt(position));
+    }
+
+    private boolean isNumber(int position) {
+        return position < this.endOffset && (Character.isDigit(this.buffer.charAt(position)) || this.buffer.charAt(position) == '-');
+    }
+
+    private static final Pattern FOR_PATTERN = Pattern.compile("(?:: ?)?FOR|\\\\|END");
+    private boolean lookAheadForLoop() {
+        int p = this.position;
+        goToNextNewLineOrSuperSpace();
+        if (FOR_PATTERN.matcher(this.buffer.subSequence(this.startOffset, this.position)).matches()) {
+            return true;
+        } else {
+            this.position = p;
+            return false;
+        }
+    }
+
+    private boolean isBackslash(int position) {
+        return position < this.endOffset && this.buffer.charAt(position) == '\\';
     }
 }

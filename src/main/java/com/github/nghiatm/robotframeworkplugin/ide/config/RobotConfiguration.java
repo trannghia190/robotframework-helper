@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -21,15 +21,30 @@ import java.util.Map;
  */
 public class RobotConfiguration implements SearchableConfigurable, Configurable.NoScroll {
 
+    private RobotOptionsProvider provider;
+
     private JPanel panel;
     private JCheckBox enableDebug;
     private JCheckBox allowTransitiveImports;
     private JCheckBox allowGlobalVariables;
     private JCheckBox capitalizeKeywords;
     private JCheckBox inlineVariableSearch;
-    private JTable variables_table;
+    private JTable execVariablesTable;
     private JTabbedPane tabbedPane1;
     private JButton addVariableBtn;
+    private JCheckBox searchChildKeywords;
+    private JCheckBox expandSuperSpaces;
+    private JTable replacementVariables;
+    private JButton addReplacementVarBtn;
+    private JTable paramTemplatesTbl;
+    private JButton addTemplateBtn;
+    private JTextField txtOutputDir;
+    private JCheckBox enablePabotRunCheckBox;
+    private JSpinner numberOfProcessesSpinner;
+
+    public RobotConfiguration() {
+        this.provider = getOptionProvider();
+    }
 
     @Nullable
     private RobotOptionsProvider getOptionProvider() {
@@ -68,27 +83,33 @@ public class RobotConfiguration implements SearchableConfigurable, Configurable.
     @Nullable
     @Override
     public JComponent createComponent() {
-        DefaultTableModel defaultTableModel = new DefaultTableModel();
-        defaultTableModel.addColumn("Key");
-        defaultTableModel.addColumn("Value");
-        defaultTableModel.addRow(new String[]{"Test", "Test"});
-        this.variables_table.setModel(defaultTableModel);
-        this.variables_table.setEnabled(true);
+        this.execVariablesTable.setEnabled(true);
+        this.addVariableBtn.addActionListener(e -> ((DefaultTableModel) execVariablesTable.getModel()).addRow(new String[]{"",""}));
 
-        this.addVariableBtn.addActionListener(e -> ((DefaultTableModel)variables_table.getModel()).addRow(new String[]{"",""}));
+        this.replacementVariables.setEnabled(true);
+        this.addReplacementVarBtn.addActionListener(e -> ((DefaultTableModel)replacementVariables.getModel()).addRow(new String[]{"",""}));
+
+        this.paramTemplatesTbl.setEnabled(true);
+        this.addTemplateBtn.addActionListener(e -> ((DefaultTableModel)paramTemplatesTbl.getModel()).addRow(new String[]{"",""}));
         return this.panel;
     }
 
     @Override
     public boolean isModified() {
-        RobotOptionsProvider provider = getOptionProvider();
         if (provider != null) {
             return provider.isDebug() != this.enableDebug.isSelected() ||
                     provider.allowTransitiveImports() != this.allowTransitiveImports.isSelected() ||
                     provider.allowGlobalVariables() != this.allowGlobalVariables.isSelected() ||
                     provider.capitalizeKeywords() != this.capitalizeKeywords.isSelected() ||
                     provider.inlineVariableSearch() != this.inlineVariableSearch.isSelected()||
-                    provider.getVariables().size() != this.variables_table.getRowCount() || isVariablesChange(provider.getVariables(), this.variables_table.getModel())
+                    provider.getExecVariables().size() != this.execVariablesTable.getRowCount() || isVariablesChange(provider.getExecVariables(), this.execVariablesTable.getModel()) ||
+                    provider.getReplacementVariables().size() != this.replacementVariables.getRowCount() || isVariablesChange(provider.getReplacementVariables(), this.replacementVariables.getModel()) ||
+                    provider.getExecParamsTemplate().size() != this.paramTemplatesTbl.getRowCount() || isVariablesChange(provider.getExecParamsTemplate(), this.paramTemplatesTbl.getModel()) ||
+                    provider.searchChildKeywords() != this.searchChildKeywords.isSelected() ||
+                    provider.expandSuperSpaces() != this.expandSuperSpaces.isSelected() ||
+                    provider.getOutputDir() != this.txtOutputDir.getText() ||
+                    provider.getIsEnablePabot() != this.enablePabotRunCheckBox.isSelected() ||
+                    provider.getNumberOfPabotProcess() != this.numberOfProcessesSpinner.getValue()
                     ;
         } else {
             return false;
@@ -116,63 +137,73 @@ public class RobotConfiguration implements SearchableConfigurable, Configurable.
 
     @Override
     public void apply() throws ConfigurationException {
-        RobotOptionsProvider provider = getOptionProvider();
         if (provider != null) {
             provider.setDebug(this.enableDebug.isSelected());
             provider.setTransitiveImports(this.allowTransitiveImports.isSelected());
             provider.setGlobalVariables(this.allowGlobalVariables.isSelected());
             provider.setCapitalizeKeywords(this.capitalizeKeywords.isSelected());
             provider.setInlineVariableSearch(this.inlineVariableSearch.isSelected());
+            provider.setSearchChildKeywords(this.searchChildKeywords.isSelected());
+            provider.setOutputDir(this.txtOutputDir.getText().trim());
 
-            int rowCount = this.variables_table.getRowCount();
-            TableModel tableModel = this.variables_table.getModel();
-            Map<String, String> variables = new HashMap<>();
-            for(int i=0; i<rowCount;i++) {
-                String key = (String) tableModel.getValueAt(i, 0);
-                String value = (String) tableModel.getValueAt(i, 1);
-                if(key!= null && value!= null && key.trim().length()>0 && value.trim().length()>0)
-                    variables.put(key,  value);
-            }
-            provider.setVariables(variables);
+            provider.setIsEnablePabot(this.enablePabotRunCheckBox.isSelected());
+            provider.setNumberOfPabotProcess((Integer) (this.numberOfProcessesSpinner.getModel()).getValue());
+
+            provider.setExecVariables(getMapDataFromTable(this.execVariablesTable));
+            provider.setReplacementVariables(getMapDataFromTable(this.replacementVariables));
+            provider.setExecParamsTemplate(getMapDataFromTable(this.paramTemplatesTbl));
         }
+    }
+
+    @NotNull
+    private Map<String, String> getMapDataFromTable(JTable table) {
+        int rowCount = table.getRowCount();
+        TableModel tableModel = table.getModel();
+        Map<String, String> variables = new LinkedHashMap<>();
+        for(int i=0; i<rowCount;i++) {
+            String key = (String) tableModel.getValueAt(i, 0);
+            String value = (String) tableModel.getValueAt(i, 1);
+            if(key!= null && value!= null && key.trim().length()>0 && value.trim().length()>0)
+                variables.put(key,  value);
+        }
+        return variables;
     }
 
     @Override
     public void reset() {
-        RobotOptionsProvider provider = getOptionProvider();
         if (provider != null) {
             this.enableDebug.setSelected(provider.isDebug());
             this.allowTransitiveImports.setSelected(provider.allowTransitiveImports());
             this.allowGlobalVariables.setSelected(provider.allowGlobalVariables());
             this.capitalizeKeywords.setSelected(provider.capitalizeKeywords());
             this.inlineVariableSearch.setSelected(provider.inlineVariableSearch());
-            DefaultTableModel defaultTableModel = new DefaultTableModel();
-            defaultTableModel.addColumn("Key");
-            defaultTableModel.addColumn("Value");
-            for(Map.Entry<String, String> entry: provider.getVariables().entrySet()){
-                String[] rowData = {entry.getKey(), entry.getValue()};
-                defaultTableModel.addRow(rowData);
-            }
-            this.variables_table.setModel(defaultTableModel);
+            this.searchChildKeywords.setSelected(provider.searchChildKeywords());
+            this.expandSuperSpaces.setSelected(provider.expandSuperSpaces());
+            this.txtOutputDir.setText(provider.getOutputDir());
 
+            this.execVariablesTable.setModel(createKVModelFromMap(provider.getExecVariables()));
+            this.replacementVariables.setModel(createKVModelFromMap(provider.getReplacementVariables()));
+            this.paramTemplatesTbl.setModel(createKVModelFromMap(provider.getExecParamsTemplate()));
+
+            this.enablePabotRunCheckBox.setSelected(provider.getIsEnablePabot());
+            SpinnerModel spinnerModel = new SpinnerNumberModel(provider.getNumberOfPabotProcess()==null?3:provider.getNumberOfPabotProcess().intValue(), 1, 5, 1);
+            this.numberOfProcessesSpinner.setModel(spinnerModel);
         }
+    }
+
+    @NotNull
+    private DefaultTableModel createKVModelFromMap(Map<String, String> map) {
+        DefaultTableModel defaultTableModel = new DefaultTableModel();
+        defaultTableModel.addColumn("Key");
+        defaultTableModel.addColumn("Value");
+        for(Map.Entry<String, String> entry: map.entrySet()){
+            String[] rowData = {entry.getKey(), entry.getValue()};
+            defaultTableModel.addRow(rowData);
+        }
+        return defaultTableModel;
     }
 
     @Override
     public void disposeUIResources() {
     }
-//
-//    private void createUIComponents() {
-//        String[] cols = {"Key", "Value"};
-//        RobotOptionsProvider provider = getOptionProvider();
-//        Map<String, String> variables = provider.getVariables();
-//        String[][] data = new String[variables.size()][2];
-//        int index = 0;
-//        for(Map.Entry<String, String> entry: variables.entrySet()){
-//            data[index][0] = entry.getKey();
-//            data[index][1] = entry.getValue();
-//            index++;
-//        }
-//        variables_table = new JTable(data, cols);
-//    }
 }

@@ -1,0 +1,48 @@
+<templateSet group="Robot Framework">
+  <template name="for" value="FOR    $element$    IN    $list$&#10;    $content$&#10;END" description="Iterate (FOR ... IN ...)" toReformat="false" toShortenFQNames="true">
+    <variable name="element" expression="&quot;${element}&quot;" defaultValue="" alwaysStopAt="true" />
+    <variable name="list" expression="&quot;@{ELEMENTS}&quot;" defaultValue="" alwaysStopAt="true" />
+    <variable name="content" expression="&quot;Log    ${element}&quot;" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="Robot" value="true" />
+    </context>
+  </template>
+  <template name="while" value="WHILE    $cond$&#10;    $content$&#10;END" description="While loop" toReformat="false" toShortenFQNames="true">
+    <variable name="cond" expression="&quot;${rc} != 0&quot;" defaultValue="" alwaysStopAt="true" />
+    <variable name="content" expression="&quot;Log     ${rc}&quot;" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="Robot" value="true" />
+    </context>
+  </template>
+  <template name="whilelimit" value="WHILE    $cond$    limit=$limit$&#10;    $content$&#10;END" description="While loop with Limit" toReformat="false" toShortenFQNames="true">
+    <variable name="cond" expression="&quot;True&quot;" defaultValue="" alwaysStopAt="true" />
+    <variable name="limit" expression="&quot;10&quot;" defaultValue="" alwaysStopAt="true" />
+    <variable name="content" expression="" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="Robot" value="true" />
+    </context>
+  </template>
+  <template name="if" value="IF   $cond$&#10;   $content$&#10;END" description="IF...END" toReformat="false" toShortenFQNames="true">
+    <variable name="cond" expression="" defaultValue="" alwaysStopAt="true" />
+    <variable name="content" expression="" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="Robot" value="true" />
+    </context>
+  </template>
+  <template name="ifelse" value="IF    $cond$&#10;    $content$&#10;ELSE&#10;    $content1$&#10;END" description="IF... ELSE...END" toReformat="false" toShortenFQNames="true">
+    <variable name="cond" expression="" defaultValue="" alwaysStopAt="true" />
+    <variable name="content" expression="" defaultValue="" alwaysStopAt="true" />
+    <variable name="content1" expression="" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="Robot" value="true" />
+    </context>
+  </template>
+  <template name="tryexception" value="TRY&#10;    $contentKeyword$&#10;EXCEPT    $errorMsg$&#10;    $errorHandleKeyword$&#10;END" description="TRY...EXCEPTION...END" toReformat="false" toShortenFQNames="true">
+    <variable name="contentKeyword" expression="" defaultValue="" alwaysStopAt="true" />
+    <variable name="errorMsg" expression="" defaultValue="" alwaysStopAt="true" />
+    <variable name="errorHandleKeyword" expression="" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="Robot" value="true" />
+    </context>
+  </template>
+</templateSet>

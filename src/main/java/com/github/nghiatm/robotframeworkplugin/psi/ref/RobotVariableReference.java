@@ -23,7 +23,7 @@ public class RobotVariableReference extends PsiReferenceBase<Variable> {
         String text = getElement().getPresentableText();
         PsiElement parent = getElement().getParent();
         PsiElement results = ResolverUtils.resolveVariableFromStatement(text, parent,
-                RobotOptionsProvider.getInstance(getElement().getProject()).allowGlobalVariables());
+                RobotOptionsProvider.getInstance().allowGlobalVariables());
         if (results != null) {
             return results;
         }

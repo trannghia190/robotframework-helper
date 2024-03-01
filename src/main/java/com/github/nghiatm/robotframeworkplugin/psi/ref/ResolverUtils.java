@@ -1,5 +1,7 @@
 package com.github.nghiatm.robotframeworkplugin.psi.ref;
 
+import com.github.nghiatm.robotframeworkplugin.ide.config.RobotOptionsProvider;
+import com.github.nghiatm.robotframeworkplugin.psi.dto.ImportType;
 import com.github.nghiatm.robotframeworkplugin.psi.element.Argument;
 import com.github.nghiatm.robotframeworkplugin.psi.element.DefinedKeyword;
 import com.github.nghiatm.robotframeworkplugin.psi.element.DefinedVariable;
@@ -9,20 +11,16 @@ import com.github.nghiatm.robotframeworkplugin.psi.element.KeywordInvokable;
 import com.github.nghiatm.robotframeworkplugin.psi.element.KeywordStatement;
 import com.github.nghiatm.robotframeworkplugin.psi.element.RobotFile;
 import com.github.nghiatm.robotframeworkplugin.psi.element.VariableDefinition;
-
-import com.github.nghiatm.robotframeworkplugin.psi.util.LogUtil;
-import com.github.nghiatm.robotframeworkplugin.psi.util.PerformanceEntity;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
-import com.github.nghiatm.robotframeworkplugin.ide.config.RobotOptionsProvider;
-
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -30,6 +28,12 @@ import java.util.stream.Collectors;
  * @since 2014-06-16
  */
 public class ResolverUtils {
+
+    private static final Pattern VARIABLE_BASENAME = Pattern.compile("([\\$\\@\\%\\&]\\{[a-zA-Z0-9 _]+)[^a-zA-Z0-9 _}].*");
+    private static final Pattern IF_ELSE_PATTERN = Pattern.compile("IF|ELSE( IF)?");
+    private static final Pattern VARIABLE_IS_NUMBER = Pattern.compile("\\$\\{[-+]?[0-9.]+\\b.*");
+    private static final Pattern TRY_EXCEPT_PATTERN = Pattern.compile("TRY|EXCEPT|FINALLY");
+
 
     private ResolverUtils() {
     }
@@ -42,6 +46,16 @@ public class ResolverUtils {
             return null;
         } else if (!(file instanceof RobotFile)) {
             return null;
+        } else if (IF_ELSE_PATTERN.matcher(keywordText).matches()) {
+            keywordText = "Run Keyword If";
+        } else if (TRY_EXCEPT_PATTERN.matcher(keywordText).matches()) {
+            keywordText = "Run Keyword And Ignore Error";
+        } else if (keywordText.equals("CONTINUE")) {
+            keywordText = "Continue For Loop";
+        } else if (keywordText.equals("BREAK")) {
+            keywordText = "Exit For Loop";
+        } else if (keywordText.equals("RETURN")) {
+            keywordText = "Return From Keyword";
         }
         RobotFile robotFile = (RobotFile) file;
 //        LogUtil.debug("Find ["+keywordText+"] in same file", "ResolverUtils", "resolveKeywordFromFile", file.getProject());
@@ -54,9 +68,20 @@ public class ResolverUtils {
         Set<KeywordFile> importFiles = robotFile.getImportedFiles(includeTransitive).stream().collect(Collectors.toSet());
 //        LogUtil.debug("Find ["+keywordText+"] in imported files: " + importFilesSet, "ResolverUtils", "resolveKeywordFromFile", file.getProject());
         for (KeywordFile imported : importFiles) {
-            for (DefinedKeyword keyword : imported.getDefinedKeywords()) {
-                if (keyword.matches(keywordText)) {
-                    return keyword.reference();
+            if (imported.getImportType() == ImportType.RESOURCE) {
+                for (DefinedKeyword keyword : imported.getDefinedKeywords()) {
+                    if (keyword.matches(keywordText)) {
+                        return keyword.reference();
+                    }
+                }
+            }
+        }
+        for (KeywordFile imported : importFiles) {
+            if (imported.getImportType() == ImportType.LIBRARY) {
+                for (DefinedKeyword keyword : imported.getDefinedKeywords()) {
+                    if (keyword.matches(keywordText)) {
+                        return keyword.reference();
+                    }
                 }
             }
         }
@@ -78,14 +103,26 @@ public class ResolverUtils {
                 return variable.reference();
             }
         }
-        boolean includeTransitive = RobotOptionsProvider.getInstance(file.getProject()).allowTransitiveImports();
-        for (KeywordFile imported : robotFile.getImportedFiles(includeTransitive)) {
-            for (DefinedVariable variable : imported.getDefinedVariables()) {
-                if (variable.matches(variableText)) {
+        Matcher m = VARIABLE_BASENAME.matcher(variableText);
+        if (m.matches()) {
+            String baseName = m.group(1) + "}";
+            for (DefinedVariable variable : robotFile.getDefinedVariables()) {
+                if (variable.matches(baseName)) {
                     return variable.reference();
                 }
             }
         }
+
+        // ROBOTFRAMEWORK only import variable from Variable and Resource
+        // following code done in RobotFileImpl.getDefinedVariables()
+//        boolean includeTransitive = RobotOptionsProvider.getInstance(file.getProject()).allowTransitiveImports();
+//        for (KeywordFile imported : robotFile.getImportedFiles(includeTransitive)) {
+//            for (DefinedVariable variable : imported.getDefinedVariables()) {
+//                if (variable.matches(variableText)) {
+//                    return variable.reference();
+//                }
+//            }
+//        }
         // TODO: __init__ files...
         return null;
     }
@@ -138,6 +175,10 @@ public class ResolverUtils {
                     return variable.reference();
                 }
             }
+        }
+        if (VARIABLE_IS_NUMBER.matcher(variableText).matches()) {
+            // just return something, for number it don't need resolving
+            return parent;
         }
         return null;
     }

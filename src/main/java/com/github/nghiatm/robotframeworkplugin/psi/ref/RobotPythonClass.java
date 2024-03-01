@@ -1,13 +1,13 @@
 package com.github.nghiatm.robotframeworkplugin.psi.ref;
 
 import com.github.nghiatm.robotframeworkplugin.psi.dto.ImportType;
-import com.github.nghiatm.robotframeworkplugin.psi.util.PerformanceCollector;
 import com.github.nghiatm.robotframeworkplugin.psi.element.DefinedKeyword;
 import com.github.nghiatm.robotframeworkplugin.psi.element.DefinedVariable;
 import com.github.nghiatm.robotframeworkplugin.psi.element.KeywordFile;
+import com.github.nghiatm.robotframeworkplugin.psi.util.PerformanceCollector;
+import com.github.nghiatm.robotframeworkplugin.psi.util.PerformanceEntity;
 import com.intellij.openapi.project.Project;
 import com.jetbrains.python.psi.PyClass;
-import com.github.nghiatm.robotframeworkplugin.psi.util.PerformanceEntity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -22,11 +22,14 @@ public class RobotPythonClass extends RobotPythonWrapper implements KeywordFile,
     private final String library;
     private final PyClass pythonClass;
     private final ImportType importType;
+    private final String originalLibrary;
 
-    public RobotPythonClass(@NotNull String library, @NotNull PyClass pythonClass, @NotNull ImportType importType) {
+
+    public RobotPythonClass(@NotNull String library,@NotNull String originalLibrary, @NotNull PyClass pythonClass, @NotNull ImportType importType) {
         this.library = library;
         this.pythonClass = pythonClass;
         this.importType = importType;
+        this.originalLibrary = originalLibrary;
     }
 
     @NotNull
@@ -47,6 +50,12 @@ public class RobotPythonClass extends RobotPythonWrapper implements KeywordFile,
         addDefinedVariables(this.pythonClass, results);
         debug.complete();
         return results;
+    }
+
+    @NotNull
+    @Override
+    public Collection<DefinedVariable> getOwnDefinedVariables() {
+        return getDefinedVariables();
     }
 
     @NotNull
@@ -75,6 +84,16 @@ public class RobotPythonClass extends RobotPythonWrapper implements KeywordFile,
         int result = this.library.hashCode();
         result = 31 * result + this.pythonClass.hashCode();
         return result;
+    }
+
+    @NotNull
+    public String getOriginalLibrary() {
+        return this.originalLibrary;
+    }
+
+    @NotNull
+    public String getLibrary() {
+        return this.library;
     }
 
     @Override

@@ -34,8 +34,8 @@ public class RobotImportNotUsed extends SimpleRobotInspection {
         } else if (!(element instanceof Argument)) {
             return true;
         }
-        PsiFile file = element.getContainingFile();
-        if (!(file instanceof RobotFile)) {
+        PsiFile eFile = element.getContainingFile();
+        if (!(eFile instanceof RobotFile)) {
             return true;
         }
 
@@ -58,7 +58,11 @@ public class RobotImportNotUsed extends SimpleRobotInspection {
                 if (importFile == null) {
                     return true; // we cannot find the file thus we do not know if we use it
                 }
-                
+
+                PsiFile file = element.getContainingFile();
+                if (!(file instanceof RobotFile)) {
+                    return true;
+                }
                 Collection<PsiFile> referenced = ((RobotFile) file).getFilesFromInvokedKeywordsAndVariables();
                 return referenced.contains(importFile.getContainingFile());
             } else {

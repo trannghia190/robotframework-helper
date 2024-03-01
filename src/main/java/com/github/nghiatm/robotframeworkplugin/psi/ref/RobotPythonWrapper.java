@@ -2,14 +2,15 @@ package com.github.nghiatm.robotframeworkplugin.psi.ref;
 
 import com.github.nghiatm.robotframeworkplugin.psi.dto.KeywordDto;
 import com.github.nghiatm.robotframeworkplugin.psi.dto.VariableDto;
-import com.github.nghiatm.robotframeworkplugin.psi.util.ReservedVariableScope;
 import com.github.nghiatm.robotframeworkplugin.psi.element.DefinedKeyword;
 import com.github.nghiatm.robotframeworkplugin.psi.element.DefinedVariable;
-import com.intellij.util.Processor;
-import com.jetbrains.python.psi.*;
+import com.github.nghiatm.robotframeworkplugin.psi.util.PythonParser;
 import com.github.nghiatm.robotframeworkplugin.psi.util.ReservedVariable;
+import com.github.nghiatm.robotframeworkplugin.psi.util.ReservedVariableScope;
+import com.intellij.util.Processor;
+import com.jetbrains.python.psi.PyClass;
+import com.jetbrains.python.psi.PyTargetExpression;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -19,38 +20,14 @@ import java.util.Collection;
  */
 public abstract class RobotPythonWrapper {
 
-    private static final String UNDERSCORE = "_";
-    private static final String SELF = "self";
-
-    protected static boolean hasArguments(@Nullable PyParameter[] parameters) {
-        if (parameters == null || parameters.length == 0) {
-            return false;
-        }
-
-        for (PyParameter parameter : parameters) {
-            String name = parameter.getName();
-            if (name != null && !SELF.equalsIgnoreCase(name)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    protected static String functionToKeyword(@Nullable String function) {
-        if (function == null || isPrivate(function)) {
-            return null;
-        } else {
-            return function;
-        }
-    }
 
     protected static void addDefinedVariables(@NotNull PyClass pythonClass, @NotNull final Collection<DefinedVariable> results) {
         pythonClass.visitClassAttributes(
                 new Processor<PyTargetExpression>() {
                     @Override
                     public boolean process(PyTargetExpression expression) {
-                        String keyword = expression.getName();
-                        if (keyword != null && !isPrivate(keyword)) {
+                        String keyword = PythonParser.keywordName(expression);
+                        if (keyword != null) {
                             // not formatted ${X}, assume scalar
                             results.add(new VariableDto(expression, ReservedVariable.wrapToScalar(keyword),
                                     ReservedVariableScope.TestCase));
@@ -63,64 +40,38 @@ public abstract class RobotPythonWrapper {
         );
     }
 
-    private static boolean isPrivate(@NotNull String keyword) {
-        // these keeps out intended private functions
-        return keyword.startsWith(UNDERSCORE) || keyword.startsWith("ROBOT_LIBRARY_");
-    }
-
     protected static void addDefinedKeywords(@NotNull PyClass pythonClass, @NotNull final String namespace, @NotNull final Collection<DefinedKeyword> results) {
-        pythonClass.visitMethods(
-                new Processor<PyFunction>() {
-
-                    @Override
-                    public boolean process(PyFunction function) {
-                        String keyword = functionToKeyword(function.getName());
+        try{
+            pythonClass.visitMethods(
+                    function -> {
+                        String keyword = PythonParser.keywordName(function);
                         if (keyword != null) {
                             // Get info from @keyword
-                            PyDecoratorList decorators = function.getDecoratorList();
-                            if (decorators != null) {
-                                PyDecorator keyword_decorator = decorators.findDecorator("keyword");
-                                if (keyword_decorator != null) {
-                                    if (keyword_decorator.hasArgumentList()) {
-                                        // Get case 'name =' argument
-                                        PyExpression kwa = keyword_decorator.getKeywordArgument("name");
-                                        if (kwa != null) {
-                                            keyword = kwa.getText().replaceAll("^\"|\"$", "");
-                                        }
-                                        else {
-                                            // Otherwise, check if first argument is unnamed
-                                            PyExpression[] kda = keyword_decorator.getArguments();
-
-                                            // Argument exists and is unnamed
-                                            if (kda.length > 0 && kda[0].getName() == null) {
-                                                keyword = kda[0].getText().replaceAll("^\"|\"$", "");
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            results.add(new KeywordDto(function, namespace, keyword, hasArguments(function.getParameterList().getParameters())));
+                            results.add(new KeywordDto(function, namespace, keyword, PythonParser.keywordHasArguments(function)));
                         }
                         return true;
-                    }
-                },
-                true,
-                null
-        );
-        pythonClass.visitClassAttributes(
-                new Processor<PyTargetExpression>() {
+                    },
+                    true,
+                    null
+            );
+        }catch (Exception e){
+            e.printStackTrace();
+        }
 
-                    @Override
-                    public boolean process(PyTargetExpression expression) {
-                        String keyword = functionToKeyword(expression.getName());
+        try {
+            pythonClass.visitClassAttributes(
+                    expression -> {
+                        String keyword = PythonParser.keywordName(expression);
                         if (keyword != null) {
                             results.add(new KeywordDto(expression, namespace, keyword, false));
                         }
                         return true;
-                    }
-                },
-                true,
-                null
-        );
+                    },
+                    true,
+                    null
+            );
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 }

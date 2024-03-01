@@ -17,6 +17,8 @@ import java.util.Collection;
  */
 public class RobotKeywordDefinitionStartingWithGherkin extends SimpleRobotInspection {
 
+    private static final Collection<String> gherkin = RobotKeywordProvider.getInstance().getSyntaxOfType(RobotTokenTypes.GHERKIN);
+
     @Nls
     @NotNull
     @Override
@@ -30,7 +32,7 @@ public class RobotKeywordDefinitionStartingWithGherkin extends SimpleRobotInspec
     }
 
     private boolean valid(String text) {
-        Collection<String> gherkin = RobotKeywordProvider.getInstance().getSyntaxOfType(RobotTokenTypes.GHERKIN);
+//        Collection<String> gherkin = RobotKeywordProvider.getInstance().getSyntaxOfType(RobotTokenTypes.GHERKIN);
         int firstSpace = text.indexOf(" ");
 
         String word;

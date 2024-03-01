@@ -31,6 +31,8 @@ public class RobotKeywordProvider {
         KEYWORD_TABLE.addSyntax(RobotTokenTypes.HEADING, "*** Setting ***");
         KEYWORD_TABLE.addSyntax(RobotTokenTypes.HEADING, "*** Test Cases ***");
         KEYWORD_TABLE.addSyntax(RobotTokenTypes.HEADING, "*** Test Case ***");
+        KEYWORD_TABLE.addSyntax(RobotTokenTypes.HEADING, "*** Tasks ***");
+        KEYWORD_TABLE.addSyntax(RobotTokenTypes.HEADING, "*** Task ***");
         KEYWORD_TABLE.addSyntax(RobotTokenTypes.HEADING, "*** Keywords ***");
         KEYWORD_TABLE.addSyntax(RobotTokenTypes.HEADING, "*** Keyword ***");
         KEYWORD_TABLE.addSyntax(RobotTokenTypes.HEADING, "*** Metadata ***");
@@ -41,6 +43,7 @@ public class RobotKeywordProvider {
 
         addRecommendation(RobotTokenTypes.HEADING, "*** Settings ***", "Settings");
         addRecommendation(RobotTokenTypes.HEADING, "*** Test Cases ***", "Test Cases");
+        addRecommendation(RobotTokenTypes.HEADING, "*** Tasks ***", "Task");
         addRecommendation(RobotTokenTypes.HEADING, "*** Keywords ***", "Keywords");
         addRecommendation(RobotTokenTypes.HEADING, "*** Variables ***", "Variables");
 
@@ -54,11 +57,15 @@ public class RobotKeywordProvider {
         KEYWORD_TABLE.addSyntax(RobotTokenTypes.SETTING, "Test Teardown");
         KEYWORD_TABLE.addSyntax(RobotTokenTypes.SETTING, "Test Postcondition");
         KEYWORD_TABLE.addSyntax(RobotTokenTypes.SETTING, "Test Template");
+        KEYWORD_TABLE.addSyntax(RobotTokenTypes.SETTING, "Task Timeout");
+        KEYWORD_TABLE.addSyntax(RobotTokenTypes.SETTING, "Task Setup");
+        KEYWORD_TABLE.addSyntax(RobotTokenTypes.SETTING, "Task Teardown");
+        KEYWORD_TABLE.addSyntax(RobotTokenTypes.SETTING, "Task Template");
         KEYWORD_TABLE.addSyntax(RobotTokenTypes.SETTING, "Documentation");
         KEYWORD_TABLE.addSyntax(RobotTokenTypes.SETTING, "Metadata");
         KEYWORD_TABLE.addSyntax(RobotTokenTypes.SETTING, "Force Tags");
         KEYWORD_TABLE.addSyntax(RobotTokenTypes.SETTING, "Default Tags");
-        KEYWORD_TABLE.addSyntax(RobotTokenTypes.SETTING, "Test Timeout");
+        // KEYWORD_TABLE.addSyntax(RobotTokenTypes.SETTING, "Test Timeout");
         KEYWORD_TABLE.addSyntax(RobotTokenTypes.SETTING, "Setup");
         KEYWORD_TABLE.addSyntax(RobotTokenTypes.SETTING, "Precondition");
         KEYWORD_TABLE.addSyntax(RobotTokenTypes.SETTING, "Teardown");
@@ -77,6 +84,10 @@ public class RobotKeywordProvider {
         addRecommendation(RobotTokenTypes.SETTING, "Test Teardown", "Test Teardown");
         addRecommendation(RobotTokenTypes.SETTING, "Test Template", "Test Template");
         addRecommendation(RobotTokenTypes.SETTING, "Test Timeout", "Test Timeout");
+        addRecommendation(RobotTokenTypes.SETTING, "Task Setup", "Task Setup");
+        addRecommendation(RobotTokenTypes.SETTING, "Task Teardown", "Task Teardown");
+        addRecommendation(RobotTokenTypes.SETTING, "Task Template", "Task Template");
+        addRecommendation(RobotTokenTypes.SETTING, "Task Timeout", "Task Timeout");
 
         KEYWORD_TABLE.addSyntax(RobotTokenTypes.BRACKET_SETTING, "[Setup]");
         KEYWORD_TABLE.addSyntax(RobotTokenTypes.BRACKET_SETTING, "[Precondition]");
@@ -122,42 +133,37 @@ public class RobotKeywordProvider {
         addRecommendation(RobotTokenTypes.GHERKIN, "Then", "Then");
         addRecommendation(RobotTokenTypes.GHERKIN, "And", "And");
 
-        KEYWORD_TABLE.addSyntax(RobotTokenTypes.SYNTAX_MARKER, "IF");
-        KEYWORD_TABLE.addSyntax(RobotTokenTypes.SYNTAX_MARKER, "END");
-        KEYWORD_TABLE.addSyntax(RobotTokenTypes.SYNTAX_MARKER, "ELSE");
-        KEYWORD_TABLE.addSyntax(RobotTokenTypes.SYNTAX_MARKER, "ELSE IF");
-        KEYWORD_TABLE.addSyntax(RobotTokenTypes.SYNTAX_MARKER, "FOR");
-
-        addRecommendation(RobotTokenTypes.SYNTAX_MARKER, "IF", "IF");
-        addRecommendation(RobotTokenTypes.SYNTAX_MARKER, "END", "END");
-        addRecommendation(RobotTokenTypes.SYNTAX_MARKER, "ELSE", "ELSE");
-        addRecommendation(RobotTokenTypes.SYNTAX_MARKER, "ELSE IF", "ELSE IF");
-        addRecommendation(RobotTokenTypes.SYNTAX_MARKER, "FOR", "FOR");
-
         GLOBAL_SETTINGS.add("Suite Setup");
         GLOBAL_SETTINGS.add("Suite Precondition");
         GLOBAL_SETTINGS.add("Suite Teardown");
         GLOBAL_SETTINGS.add("Suite Postcondition");
         GLOBAL_SETTINGS.add("Test Setup");
+        GLOBAL_SETTINGS.add("Task Setup");
         GLOBAL_SETTINGS.add("Test Precondition");
         GLOBAL_SETTINGS.add("Test Teardown");
+        GLOBAL_SETTINGS.add("Task Teardown");
         GLOBAL_SETTINGS.add("Test PostCondition");
         GLOBAL_SETTINGS.add("Test Template");
+        GLOBAL_SETTINGS.add("Task Template");
         GLOBAL_SETTINGS.add("Documentation");
         GLOBAL_SETTINGS.add("Metadata");
         GLOBAL_SETTINGS.add("Force Tags");
         GLOBAL_SETTINGS.add("Default Tags");
         GLOBAL_SETTINGS.add("Test Timeout");
+        GLOBAL_SETTINGS.add("Task Timeout");
 
         SETTINGS_FOLLOWED_BY_KEYWORDS.add("Suite Setup");
         SETTINGS_FOLLOWED_BY_KEYWORDS.add("Suite Precondition");
         SETTINGS_FOLLOWED_BY_KEYWORDS.add("Suite Teardown");
         SETTINGS_FOLLOWED_BY_KEYWORDS.add("Suite Postcondition");
         SETTINGS_FOLLOWED_BY_KEYWORDS.add("Test Setup");
+        SETTINGS_FOLLOWED_BY_KEYWORDS.add("Task Setup");
         SETTINGS_FOLLOWED_BY_KEYWORDS.add("Test Precondition");
         SETTINGS_FOLLOWED_BY_KEYWORDS.add("Test Teardown");
+        SETTINGS_FOLLOWED_BY_KEYWORDS.add("Task Teardown");
         SETTINGS_FOLLOWED_BY_KEYWORDS.add("Test PostCondition");
         SETTINGS_FOLLOWED_BY_KEYWORDS.add("Test Template");
+        SETTINGS_FOLLOWED_BY_KEYWORDS.add("Task Template");
         SETTINGS_FOLLOWED_BY_KEYWORDS.add("Setup");
         SETTINGS_FOLLOWED_BY_KEYWORDS.add("[Setup]");
         SETTINGS_FOLLOWED_BY_KEYWORDS.add("Precondition");
@@ -175,6 +181,7 @@ public class RobotKeywordProvider {
         SETTINGS_FOLLOWED_BY_STRINGS.add("Force Tags");
         SETTINGS_FOLLOWED_BY_STRINGS.add("Default Tags");
         SETTINGS_FOLLOWED_BY_STRINGS.add("Test Timeout");
+        SETTINGS_FOLLOWED_BY_STRINGS.add("Task Timeout");
         SETTINGS_FOLLOWED_BY_STRINGS.add("Tags");
         SETTINGS_FOLLOWED_BY_STRINGS.add("[Tags]");
         SETTINGS_FOLLOWED_BY_STRINGS.add("Return");
@@ -184,6 +191,25 @@ public class RobotKeywordProvider {
 
         SETTINGS_FOLLOWED_BY_VARIABLE_DEFINITIONS.add("Arguments");
         SETTINGS_FOLLOWED_BY_VARIABLE_DEFINITIONS.add("[Arguments]");
+
+        addRecommendation(RobotTokenTypes.RESERVED_WORD, "IF", "IF");
+        addRecommendation(RobotTokenTypes.RESERVED_WORD, "ELSE IF", "ELSE IF");
+        addRecommendation(RobotTokenTypes.RESERVED_WORD, "FOR", "FOR");
+        addRecommendation(RobotTokenTypes.RESERVED_WORD, ":FOR", ":FOR");
+        addRecommendation(RobotTokenTypes.RESERVED_WORD, "IN", "IN");
+        addRecommendation(RobotTokenTypes.RESERVED_WORD, "IN RANGE", "IN RANGE");
+        addRecommendation(RobotTokenTypes.RESERVED_WORD, "IN ENUMERATE", "IN ENUMERATE");
+        addRecommendation(RobotTokenTypes.RESERVED_WORD, "IN ZIP", "IN ZIP");
+        addRecommendation(RobotTokenTypes.RESERVED_WORD, "ELSE", "ELSE");
+        addRecommendation(RobotTokenTypes.RESERVED_WORD_NEWLINE_INDENT, "END", "END");
+        addRecommendation(RobotTokenTypes.SETTING_RESERVED_WORD, "WITH NAME", "WITH NAME");
+        addRecommendation(RobotTokenTypes.RESERVED_WORD_NEWLINE_INDENT_SUPERSPACE, "TRY", "TRY");
+        addRecommendation(RobotTokenTypes.RESERVED_WORD, "EXCEPT", "EXCEPT");
+        addRecommendation(RobotTokenTypes.RESERVED_WORD_NEWLINE_INDENT_SUPERSPACE, "FINALLY", "FINALLY");
+        addRecommendation(RobotTokenTypes.RESERVED_WORD, "WHILE", "WHILE");
+        addRecommendation(RobotTokenTypes.RESERVED_WORD_NEWLINE_INDENT, "BREAK", "BREAK");
+        addRecommendation(RobotTokenTypes.RESERVED_WORD_NEWLINE_INDENT, "CONTINUE", "CONTINUE");
+        addRecommendation(RobotTokenTypes.RESERVED_WORD, "RETURN", "RETURN");
     }
 
     private static void addRecommendation(@NotNull RobotElementType type, @NotNull String word, @NotNull String lookup) {
